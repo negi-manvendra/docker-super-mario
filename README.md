@@ -1,191 +1,90 @@
-# Super Mario Bros - Browser Game
+# Super Mario Mimic - Professional Retro Edition
 
-A fully functional Super Mario Bros game built with TypeScript, HTML5 Canvas, and modern web technologies. This game runs entirely in the browser and includes classic Mario mechanics like jumping, enemy stomping, coin collection, and platform physics.
+A high-fidelity Super Mario Bros tribute built with TypeScript and HTML5 Canvas. This "Professional Edition" features advanced physics, parallax backgrounds, and a Neo-Retro UI with CRT scanline effects.
 
-## 🎮 Game Features
+## 🎮 Key Features
 
-- **Authentic Mario Movement**: Physics-based player movement with running, jumping, and momentum
-- **Enemy AI**: Goombas that patrol platforms and can be defeated by jumping
-- **Collectibles**: Coins with animated collection effects
-- **Level Design**: Multi-platform levels with varying difficulty
-- **Score System**: Points for collecting coins and defeating enemies
-- **Lives System**: Traditional 3-lives gameplay with game over screen
-- **Sound Effects**: Web Audio API generated retro sound effects
-- **Responsive Design**: Scales to different screen sizes
+### 🕹️ Professional Physics Engine
+- **Momentum-Based Movement**: Acceleration and deceleration curves for a weightier, authentic feel.
+- **Variable Jump Height**: Jump height is determined by how long the spacebar is held, allowing for precision platforming.
+- **Snappier Response**: Optimized gravity and collision detection for a tight, professional "game feel."
+
+### 🎨 Advanced Visuals & UI
+- **Parallax Backgrounds**: Multi-layered backgrounds (mountains and clouds) that move at different speeds for depth.
+- **CRT Scanline Effect**: A CSS-powered CRT filter and pixel-grid overlay for true retro immersion.
+- **Neo-Retro UI**: Professional HUD using the 'Press Start 2P' font, featuring padded scores and "World 1-1" formatting.
+- **Dynamic Animations**: Frame-rate independent animations that scale with movement speed.
+
+### 🏗️ Modern Architecture
+- **Multi-Stage Docker**: Production-optimized Nginx serving for minimal image size.
+- **Docker Compose**: Single-command orchestration for development and deployment.
+- **TypeScript Core**: Fully typed game logic and entity management.
 
 ## 🏗️ Project Structure
 
 ```
 ├── src/
 │   ├── game/
-│   │   ├── entities/
-│   │   │   ├── Player.ts          # Player character with physics and controls
-│   │   │   ├── Enemy.ts           # Enemy AI and behavior
-│   │   │   ├── Coin.ts            # Collectible coins with animations
-│   │   │   └── Platform.ts        # Platform/ground collision objects
-│   │   ├── Game.ts                # Main game controller and state management
-│   │   ├── GameRenderer.ts        # Rendering engine for all game objects
-│   │   ├── InputHandler.ts        # Keyboard input management
-│   │   ├── SoundManager.ts        # Audio effects using Web Audio API
-│   │   └── CollisionDetector.ts   # Physics collision detection system
+│   │   ├── entities/          # Player, Enemy, Coin, Platform logic
+│   │   ├── Game.ts            # Central game controller
+│   │   ├── GameRenderer.ts    # Advanced Canvas rendering system
+│   │   ├── SoundManager.ts    # Web Audio API implementation
+│   │   └── CollisionDetector.ts # AABB physics collision system
 │   ├── styles/
-│   │   └── game.css               # Game UI and canvas styling
-│   └── main.ts                    # Application entry point and game loop
-├── index.html                     # Main HTML file
-├── Dockerfile                     # Container configuration
-├── package.json                   # Dependencies and scripts
-└── README.md                      # This file
+│   │   └── game.css           # CRT effects and Retro UI styling
+│   └── main.ts                    # Application entry point
+├── Dockerfile                 # Multi-stage production config
+├── docker-compose.yml         # Container orchestration
+└── index.html                 # Main layout and UI structure
 ```
-
-## 🎯 Game Architecture
-
-### Core Components
-
-1. **Game.ts** - Central game controller that:
-   - Manages game state (playing, game over)
-   - Coordinates all game entities
-   - Handles collision detection
-   - Updates score, lives, and level progression
-
-2. **Player.ts** - Mario character implementation:
-   - Physics-based movement with gravity and friction
-   - Jump mechanics with proper air control
-   - Platform collision detection
-   - Animation state management
-
-3. **Enemy.ts** - Goomba enemy behavior:
-   - Autonomous movement with direction changes
-   - Platform-aware AI that doesn't fall off edges
-   - Collision detection with player and platforms
-
-4. **GameRenderer.ts** - Rendering system:
-   - Pixel-perfect sprite drawing
-   - Background and environment rendering
-   - Animation frame management
-   - Responsive canvas scaling
-
-5. **InputHandler.ts** - Input management:
-   - Real-time keyboard state tracking
-   - Smooth movement input processing
-   - Focus and blur event handling
-
-### Game Mechanics
-
-- **Movement**: Arrow keys for left/right movement with momentum
-- **Jumping**: Spacebar for jumping with variable height based on hold duration
-- **Combat**: Jump on enemies to defeat them and gain points
-- **Collection**: Touch coins to collect them for score
-- **Lives**: Start with 3 lives, lose one when hit by enemy or falling
-- **Progression**: Clear all coins and enemies to advance to next level
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18 or higher
-- npm or yarn package manager
+- **Docker** and **Docker Compose** (Recommended)
+- OR **Node.js 20+**
 
-### Local Development
+### Option 1: Quick Start with Docker (Recommended)
 
-1. **Clone and install dependencies:**
-```bash
-git clone <repository-url>
-cd super-mario-game
-npm install
-```
+1. **Start the container:**
+   ```bash
+   docker compose up -d
+   ```
 
-2. **Start the development server:**
-```bash
-npm run dev
-```
+2. **Access the game:**
+   Open `http://localhost:8080` in your browser.
 
-3. **Open your browser and navigate to the local development URL**
+3. **Stop the game:**
+   ```bash
+   docker compose down
+   ```
 
-### Building for Production
+### Option 2: Local Development
 
-```bash
-npm run build
-npm run preview
-```
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## 🐳 Docker Containerization
+2. **Start dev server:**
+   ```bash
+   npm run dev
+   ```
 
-This application can be containerized using Docker for easy deployment and distribution.
+## 🎮 Controls
 
-### Building the Docker Image
+- **ARROW LEFT/RIGHT**: Move Mario (with momentum)
+- **SPACEBAR**: Jump (Hold longer for higher jumps)
+- **R**: Restart game
 
-1. **Build the image:**
-```bash
-docker build -t super-mario-game .
-```
+## 🐳 Docker Deployment Details
 
-2. **Run the container:**
-```bash
-docker run -p 8080:8080 super-mario-game
-```
+The project utilizes a **Multi-Stage Docker Build**:
+1. **Stage 1 (Node.js)**: Compiles TypeScript and builds the Vite production bundle.
+2. **Stage 2 (Nginx)**: Serves the static assets via a lightweight Alpine Nginx server.
 
-3. **Access the game:**
-Open your browser and navigate to `http://localhost:8080`
-
-### Docker Image Details
-
-The Dockerfile:
-- Uses Node.js 18 Alpine for a lightweight base image
-- Installs dependencies and builds the application
-- Serves the built files using http-server
-- Exposes port 8080 for web access
-- Includes proper .dockerignore for optimized builds
-
-### Production Deployment
-
-For production deployment, you can push the Docker image to a container registry:
-
-```bash
-# Tag for registry
-docker tag super-mario-game your-registry/super-mario-game:latest
-
-# Push to registry
-docker push your-registry/super-mario-game:latest
-
-# Deploy to your container platform
-docker run -d -p 80:8080 your-registry/super-mario-game:latest
-```
-
-## 🎮 Game Controls
-
-- **Arrow Left/Right**: Move Mario left or right
-- **Spacebar**: Jump (hold for higher jumps)
-- **R**: Restart game (when game over)
-
-## 🔧 Technical Implementation
-
-### Performance Optimizations
-- Efficient collision detection using AABB (Axis-Aligned Bounding Box)
-- Optimized rendering with minimal canvas operations
-- Frame-rate independent game logic using delta time
-- Memory-efficient entity management
-
-### Browser Compatibility
-- Modern ES6+ features with TypeScript compilation
-- Web Audio API for sound (gracefully degrades if unsupported)
-- Canvas 2D API for graphics (widely supported)
-- Responsive design for various screen sizes
-
-### Code Quality
-- TypeScript for type safety and better development experience
-- Modular architecture with clear separation of concerns
-- ESLint configuration for code quality
-- Comprehensive file organization following best practices
-
-## 🎨 Customization
-
-The game is designed to be easily customizable:
-
-- **Add new enemies**: Extend the Enemy class with new types
-- **Create new levels**: Modify the level initialization in Game.ts
-- **Change graphics**: Update the rendering methods in GameRenderer.ts
-- **Add power-ups**: Create new collectible entities
-- **Modify physics**: Adjust constants in Player.ts and Enemy.ts
+This ensures the final production image is extremely small (~20MB) and highly secure.
 
 ## 📝 License
 
-This project is created for educational and demonstration purposes. Super Mario Bros is a trademark of Nintendo.
+This project is created for educational purposes. Super Mario Bros is a trademark of Nintendo.

@@ -217,9 +217,15 @@ export class Game {
         const livesElement = document.getElementById('livesValue');
         const levelElement = document.getElementById('levelValue');
         
-        if (scoreElement) scoreElement.textContent = this.score.toString();
-        if (livesElement) livesElement.textContent = this.lives.toString();
-        if (levelElement) levelElement.textContent = this.level.toString();
+        if (scoreElement) {
+            scoreElement.textContent = this.score.toString().padStart(6, '0');
+        }
+        if (livesElement) {
+            livesElement.textContent = this.lives.toString().padStart(2, '0');
+        }
+        if (levelElement) {
+            levelElement.textContent = `1-${this.level}`;
+        }
     }
 
     private checkGameState(): void {
@@ -251,10 +257,11 @@ export class Game {
     }
 
     public render(ctx: CanvasRenderingContext2D): void {
+        // Clear background with parallax elements (called before translation)
+        this.renderer.clear(ctx, this.width, this.height, this.cameraX);
+
         ctx.save();
         ctx.translate(-this.cameraX, 0);
-        
-        this.renderer.clear(ctx, this.width * 3, this.height);
         
         // Render platforms
         this.platforms.forEach(platform => {

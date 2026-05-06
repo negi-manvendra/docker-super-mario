@@ -8,17 +8,17 @@ export class Player {
     public height: number = 32;
     public velocityX: number = 0;
     public velocityY: number = 0;
-    public speed: number = 200;
-    public jumpPower: number = 600;
+    public acceleration: number = 1000; // Smoother movement
+    public jumpPower: number = 650;
     public isJumping: boolean = false;
     public isGrounded: boolean = false;
     public direction: 'left' | 'right' = 'right';
     public animationFrame: number = 0;
     public animationTimer: number = 0;
 
-    private readonly gravity: number = 1200;
-    private readonly friction: number = 0.8;
-    private readonly maxSpeed: number = 300;
+    private readonly gravity: number = 1800; // Snappier gravity
+    private readonly friction: number = 0.85; // Less slide
+    private readonly maxSpeed: number = 350; // Faster top speed
 
     constructor(
         x: number,
@@ -41,16 +41,17 @@ export class Player {
     private handleInput(deltaTime: number): void {
         const keys = this.inputHandler.keys;
 
-        // Horizontal movement
+        // Horizontal movement with acceleration
         if (keys.ArrowLeft) {
-            this.velocityX = Math.max(this.velocityX - this.speed * deltaTime, -this.maxSpeed);
+            this.velocityX = Math.max(this.velocityX - this.acceleration * deltaTime, -this.maxSpeed);
             this.direction = 'left';
         } else if (keys.ArrowRight) {
-            this.velocityX = Math.min(this.velocityX + this.speed * deltaTime, this.maxSpeed);
+            this.velocityX = Math.min(this.velocityX + this.acceleration * deltaTime, this.maxSpeed);
             this.direction = 'right';
         } else {
+            // Apply ground/air friction
             this.velocityX *= this.friction;
-            if (Math.abs(this.velocityX) < 10) this.velocityX = 0;
+            if (Math.abs(this.velocityX) < 5) this.velocityX = 0;
         }
 
         // Jumping
@@ -59,11 +60,19 @@ export class Player {
             this.isJumping = true;
             this.isGrounded = false;
         }
+
+        // Variable jump height: cut velocity if space is released while moving up
+        if (!keys.Space && this.velocityY < -200) {
+            this.velocityY *= 0.5;
+        }
     }
 
     private applyPhysics(deltaTime: number): void {
         // Apply gravity
         this.velocityY += this.gravity * deltaTime;
+
+        // Cap falling speed
+        if (this.velocityY > 800) this.velocityY = 800;
 
         // Update position
         this.x += this.velocityX * deltaTime;
@@ -74,7 +83,6 @@ export class Player {
             this.x = 0;
             this.velocityX = 0;
         }
-        // Remove right boundary to allow scrolling
     }
 
     private handlePlatformCollisions(platforms: Platform[]): void {
@@ -116,14 +124,19 @@ export class Player {
     private updateAnimation(deltaTime: number): void {
         this.animationTimer += deltaTime;
         
-        if (this.animationTimer > 150) { // Animation frame duration
+        // Speed up animation based on velocity
+        const animationSpeed = Math.max(80, 200 - Math.abs(this.velocityX) * 0.4);
+
+        if (this.animationTimer > animationSpeed) { 
             this.animationFrame = (this.animationFrame + 1) % 4;
             this.animationTimer = 0;
         }
     }
 
     public bounce(): void {
-        this.velocityY = -200; // Small bounce when stomping enemies
+        this.velocityY = -350; // More satisfying bounce
+        this.isJumping = true;
+        this.isGrounded = false;
     }
 
     public reset(x: number, y: number): void {

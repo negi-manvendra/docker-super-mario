@@ -4,46 +4,70 @@ import { Coin } from './entities/Coin';
 import { Platform } from './entities/Platform';
 
 export class GameRenderer {
-    public clear(ctx: CanvasRenderingContext2D, width: number, height: number): void {
+    public clear(ctx: CanvasRenderingContext2D, width: number, height: number, cameraX: number): void {
         // Sky gradient
         const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, '#87CEEB');
-        gradient.addColorStop(0.6, '#87CEEB');
-        gradient.addColorStop(0.6, '#90EE90');
-        gradient.addColorStop(1, '#228B22');
+        gradient.addColorStop(0, '#4facfe'); // Deeper blue
+        gradient.addColorStop(1, '#00f2fe'); // Lighter blue
         
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
 
+        // Add some parallax-style mountains in background
+        this.drawMountains(ctx, width, height, cameraX);
+        
         // Add some clouds
-        this.drawClouds(ctx, width, height);
+        this.drawClouds(ctx, width, height, cameraX);
     }
 
-    private drawClouds(ctx: CanvasRenderingContext2D, width: number, height: number): void {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    private drawMountains(ctx: CanvasRenderingContext2D, width: number, height: number, cameraX: number): void {
+        const parallaxFactor = 0.2;
+        const offset = -(cameraX * parallaxFactor) % 400;
         
-        // Simple cloud shapes
+        ctx.fillStyle = 'rgba(34, 139, 34, 0.3)'; // Faded green for distant hills
+        
+        for (let i = -1; i < (width / 400) + 1; i++) {
+            const x = i * 400 + offset;
+            ctx.beginPath();
+            ctx.moveTo(x, height);
+            ctx.lineTo(x + 200, height - 150);
+            ctx.lineTo(x + 400, height);
+            ctx.fill();
+        }
+    }
+
+    private drawClouds(ctx: CanvasRenderingContext2D, width: number, height: number, cameraX: number): void {
+        const parallaxFactor = 0.5;
+        const offset = -(cameraX * parallaxFactor);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        
         const clouds = [
             { x: 150, y: 80, size: 40 },
             { x: 400, y: 60, size: 50 },
             { x: 700, y: 90, size: 35 },
-            { x: 900, y: 70, size: 45 },
-            { x: 1200, y: 85, size: 38 },
-            { x: 1500, y: 65, size: 42 },
-            { x: 1800, y: 75, size: 40 },
-            { x: 2100, y: 90, size: 35 }
+            { x: 900, y: 70, size: 45 }
         ];
 
-        clouds.forEach(cloud => {
+        clouds.forEach((cloud, index) => {
+            const x = ((cloud.x + offset + index * 500) % (width + 400)) - 200;
             ctx.beginPath();
-            ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
-            ctx.arc(cloud.x + 25, cloud.y, cloud.size * 0.8, 0, Math.PI * 2);
-            ctx.arc(cloud.x + 50, cloud.y, cloud.size, 0, Math.PI * 2);
+            ctx.arc(x, cloud.y, cloud.size, 0, Math.PI * 2);
+            ctx.arc(x + 25, cloud.y - 10, cloud.size * 0.8, 0, Math.PI * 2);
+            ctx.arc(x + 50, cloud.y, cloud.size, 0, Math.PI * 2);
             ctx.fill();
         });
     }
 
     public renderPlayer(ctx: CanvasRenderingContext2D, player: Player): void {
+        // Draw shadow
+        if (player.isGrounded) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width / 2, player.y + player.height - 2, 12, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         ctx.save();
         
         // Flip sprite if moving left
@@ -52,16 +76,15 @@ export class GameRenderer {
             ctx.translate(-player.x - player.width, 0);
         }
 
-        // Mario colors
+        // Mario colors - More vibrant
         const colors = {
-            hat: '#FF0000',
-            skin: '#FFDBAC',
-            shirt: '#FF0000',
-            overalls: '#0066CC',
-            shoes: '#8B4513'
+            hat: '#e63946',
+            skin: '#ffb703',
+            shirt: '#e63946',
+            overalls: '#1d3557',
+            shoes: '#457b9d'
         };
 
-        // Draw Mario sprite (simplified pixel art)
         this.drawMarioSprite(ctx, player.x, player.y, colors, player.animationFrame, player);
         
         ctx.restore();
@@ -80,11 +103,8 @@ export class GameRenderer {
         
         // Eyes
         ctx.fillStyle = '#000000';
-        ctx.fillRect(x + 10 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 2 * pixelSize);
-        ctx.fillRect(x + 20 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 2 * pixelSize);
-        
-        // Mustache
-        ctx.fillRect(x + 12 * pixelSize, y + 14 * pixelSize, 8 * pixelSize, 2 * pixelSize);
+        ctx.fillRect(x + 10 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 3 * pixelSize);
+        ctx.fillRect(x + 20 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 3 * pixelSize);
         
         // Shirt
         ctx.fillStyle = colors.shirt;
@@ -94,19 +114,28 @@ export class GameRenderer {
         ctx.fillStyle = colors.overalls;
         ctx.fillRect(x + 6 * pixelSize, y + 20 * pixelSize, 20 * pixelSize, 8 * pixelSize);
         
-        // Legs (animated)
-        const legOffset = Math.abs(player.velocityX) > 10 ? (frame % 2) * 2 : 0;
-        ctx.fillRect(x + (8 + legOffset) * pixelSize, y + 24 * pixelSize, 6 * pixelSize, 8 * pixelSize);
-        ctx.fillRect(x + (18 - legOffset) * pixelSize, y + 24 * pixelSize, 6 * pixelSize, 8 * pixelSize);
+        // Legs (animated with better logic)
+        const isMoving = Math.abs(player.velocityX) > 10;
+        const legOffset = isMoving ? (frame % 2) * 3 : 0;
+        const jumpOffset = player.isJumping ? -4 : 0;
+
+        ctx.fillRect(x + (8 + legOffset) * pixelSize, y + (24 + jumpOffset) * pixelSize, 6 * pixelSize, 8 * pixelSize);
+        ctx.fillRect(x + (18 - legOffset) * pixelSize, y + (24 + jumpOffset) * pixelSize, 6 * pixelSize, 8 * pixelSize);
         
         // Shoes
         ctx.fillStyle = colors.shoes;
-        ctx.fillRect(x + (6 + legOffset) * pixelSize, y + 28 * pixelSize, 10 * pixelSize, 4 * pixelSize);
-        ctx.fillRect(x + (16 - legOffset) * pixelSize, y + 28 * pixelSize, 10 * pixelSize, 4 * pixelSize);
+        ctx.fillRect(x + (6 + legOffset) * pixelSize, y + (28 + jumpOffset) * pixelSize, 10 * pixelSize, 4 * pixelSize);
+        ctx.fillRect(x + (16 - legOffset) * pixelSize, y + (28 + jumpOffset) * pixelSize, 10 * pixelSize, 4 * pixelSize);
     }
 
     public renderEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy): void {
         if (enemy.type === 'goomba') {
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.beginPath();
+            ctx.ellipse(enemy.x + enemy.width / 2, enemy.y + enemy.height - 2, 10, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
             this.drawGoomba(ctx, enemy.x, enemy.y, enemy.animationFrame);
         }
     }
@@ -115,7 +144,7 @@ export class GameRenderer {
         const pixelSize = 2;
         
         // Body
-        ctx.fillStyle = '#8B4513';
+        ctx.fillStyle = '#bc6c25';
         ctx.fillRect(x + 2 * pixelSize, y + 4 * pixelSize, 24 * pixelSize, 16 * pixelSize);
         
         // Eyes
@@ -127,13 +156,9 @@ export class GameRenderer {
         ctx.fillRect(x + 8 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 2 * pixelSize);
         ctx.fillRect(x + 20 * pixelSize, y + 10 * pixelSize, 2 * pixelSize, 2 * pixelSize);
         
-        // Angry eyebrows
-        ctx.fillRect(x + 6 * pixelSize, y + 6 * pixelSize, 6 * pixelSize, 2 * pixelSize);
-        ctx.fillRect(x + 16 * pixelSize, y + 6 * pixelSize, 6 * pixelSize, 2 * pixelSize);
-        
-        // Feet (animated)
+        // Feet
         const footOffset = frame % 2;
-        ctx.fillStyle = '#654321';
+        ctx.fillStyle = '#283618';
         ctx.fillRect(x + (4 + footOffset) * pixelSize, y + 20 * pixelSize, 8 * pixelSize, 4 * pixelSize);
         ctx.fillRect(x + (16 - footOffset) * pixelSize, y + 20 * pixelSize, 8 * pixelSize, 4 * pixelSize);
     }
@@ -144,31 +169,31 @@ export class GameRenderer {
         const centerX = coin.x + coin.width / 2;
         const centerY = coin.y + coin.height / 2;
         
-        // Rotating coin effect
-        const rotation = (Date.now() * 0.01) % (Math.PI * 2);
+        const rotation = (Date.now() * 0.008) % (Math.PI * 2);
         const scale = Math.abs(Math.cos(rotation));
         
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.scale(scale, 1);
         
-        // Coin body
+        // Glow effect
+        const gradient = ctx.createRadialGradient(0, 0, 2, 0, 0, 12);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.3, '#FFD700');
+        gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.fillStyle = '#FFD700';
         ctx.beginPath();
         ctx.arc(0, 0, 8, 0, Math.PI * 2);
         ctx.fill();
         
-        // Inner shine
-        ctx.fillStyle = '#FFF700';
-        ctx.beginPath();
-        ctx.arc(-2, -2, 4, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Border
-        ctx.strokeStyle = '#B8860B';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.strokeStyle = '#DAA520';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
         
         ctx.restore();
@@ -176,30 +201,36 @@ export class GameRenderer {
 
     public renderPlatform(ctx: CanvasRenderingContext2D, platform: Platform): void {
         if (platform.type === 'ground') {
-            // Ground texture
-            ctx.fillStyle = '#228B22';
+            // Ground
+            ctx.fillStyle = '#386641';
             ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
             
-            // Grass texture
-            ctx.fillStyle = '#32CD32';
-            for (let i = 0; i < platform.width; i += 8) {
-                ctx.fillRect(platform.x + i, platform.y, 4, 8);
+            // Grass top
+            ctx.fillStyle = '#6a994e';
+            ctx.fillRect(platform.x, platform.y, platform.width, 10);
+            
+            // Decorative highlights
+            ctx.fillStyle = '#a7c957';
+            for (let i = 0; i < platform.width; i += 40) {
+                ctx.fillRect(platform.x + i, platform.y, 10, 4);
             }
         } else {
-            // Regular platform
-            ctx.fillStyle = '#8B4513';
+            // Floating platform with texture
+            ctx.fillStyle = '#bc6c25';
             ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
             
-            // Platform border
-            ctx.strokeStyle = '#654321';
+            ctx.strokeStyle = '#283618';
             ctx.lineWidth = 2;
             ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
             
-            // Platform details
-            ctx.fillStyle = '#A0522D';
-            for (let i = 0; i < platform.width; i += 32) {
-                ctx.fillRect(platform.x + i + 4, platform.y + 4, 24, platform.height - 8);
+            // Texture lines
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            for(let i = 8; i < platform.width; i += 16) {
+                ctx.moveTo(platform.x + i, platform.y + 4);
+                ctx.lineTo(platform.x + i, platform.y + platform.height - 4);
             }
+            ctx.stroke();
         }
     }
 }

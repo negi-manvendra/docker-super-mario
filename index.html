@@ -3,28 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Mario Bros - Browser Game</title>
-    <link rel="stylesheet" href="src/styles/game.css">
+    <title>SUPER MARIO MIMIC - RETRO EDITION</title>
+    <link rel="stylesheet" href="/src/styles/game.css">
 </head>
 <body>
     <div id="gameContainer">
         <div id="ui">
-            <div id="score">Score: <span id="scoreValue">0</span></div>
-            <div id="lives">Lives: <span id="livesValue">3</span></div>
-            <div id="level">Level: <span id="levelValue">1</span></div>
+            <div class="ui-item">
+                <span class="ui-label">MARIO</span>
+                <span id="scoreValue">000000</span>
+            </div>
+            <div class="ui-item">
+                <span class="ui-label">LIVES</span>
+                <span id="livesValue">03</span>
+            </div>
+            <div class="ui-item">
+                <span class="ui-label">WORLD</span>
+                <span id="levelValue">1-1</span>
+            </div>
         </div>
         <canvas id="gameCanvas" width="1024" height="512"></canvas>
         <div id="gameOver" class="hidden">
-            <h2>Game Over</h2>
-            <p id="gameOverReason">You ran out of lives!</p>
-            <p>Final Score: <span id="finalScore">0</span></p>
-            <button id="restartBtn">Play Again</button>
+            <h2>GAME OVER</h2>
+            <p id="gameOverReason">YOUR QUEST HAS ENDED</p>
+            <p>FINAL SCORE: <span id="finalScore">0</span></p>
+            <button id="restartBtn">RETRY</button>
         </div>
         <div id="instructions">
-            <p>Use ARROW KEYS to move and SPACEBAR to jump</p>
+            <p>LEFT/RIGHT ARROWS: MOVE | SPACE: JUMP</p>
         </div>
     </div>
     
-    <script type="module" src="src/main.ts"></script>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

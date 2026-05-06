@@ -1,35 +1,26 @@
-# Build stage
-FROM node:18-alpine AS build
+# Stage 1: Build the application
+FROM node:20-alpine AS build-stage
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install all dependencies
-RUN npm ci
-
-# Copy source code
+# Copy the rest of the application code
 COPY . .
 
-# Build the application
+# Build the project (generates the 'dist' folder)
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine
+# Stage 2: Serve the application with Nginx
+FROM nginx:stable-alpine
 
-# Set working directory
-WORKDIR /app
+# Copy the build output from the previous stage to Nginx's serving directory
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Copy built assets from the build stage
-COPY --from=build /app/dist ./dist
+# Expose port 80 for the web server
+EXPOSE 80
 
-# Install a simple HTTP server
-RUN npm install -g http-server
-
-# Expose port
-EXPOSE 8080
-
-# Start the server
-CMD ["http-server", "dist", "-p", "8080", "-c-1"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
